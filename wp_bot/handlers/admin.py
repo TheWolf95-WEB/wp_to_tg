@@ -12,14 +12,20 @@ async def restart_service(message: types.Message):
     if message.from_user.id not in ADMIN_IDS:
         return
 
-    await message.answer("♻️ Рестартую systemd сервис...")
+    notice = await message.answer("♻️ Рестартую systemd сервис...")
+    asyncio.create_task(_delayed_restart(message, notice.message_id))
 
-    # ⏱ даём время отправиться сообщению
-    asyncio.create_task(_delayed_restart())
-
-async def _delayed_restart():
+async def _delayed_restart(message: types.Message, message_id: int):
     await asyncio.sleep(1)
+
     try:
         subprocess.run(["systemctl", "restart", SERVICE_NAME], check=True)
+        await message.bot.delete_message(chat_id=message.chat.id, message_id=message_id)
+        await message.answer("✅ Сервер успешно перезапущен.")
     except Exception as e:
         logging.exception("Ошибка при рестарте systemd")
+        await message.bot.delete_message(chat_id=message.chat.id, message_id=message_id)
+        await message.answer(
+            f"❌ Ошибка при перезапуске:\n<code>{e}</code>",
+            parse_mode="HTML"
+        )
