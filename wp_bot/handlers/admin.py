@@ -1,18 +1,18 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-from config import ADMIN_IDS, SERVICE_NAME
-
 import subprocess
+import logging
+from config import ADMIN_IDS, SERVICE_NAME
 
 router = Router()
 
 @router.message(Command("restart"))
-async def restart_service(message: types.Message):
+async def restart_bot(message: types.Message):
     if message.from_user.id not in ADMIN_IDS:
         return
-
+    await message.answer("♻️ Рестартую сервис...")
     try:
         subprocess.run(["systemctl", "restart", SERVICE_NAME], check=True)
-        await message.answer("♻️ Бот успешно перезапущен.")
-    except subprocess.CalledProcessError as e:
-        await message.answer(f"❌ Ошибка при перезапуске:\n<code>{e}</code>", parse_mode="HTML")
+    except Exception as e:
+        logging.exception("Ошибка при рестарте systemd")
+        await message.answer(f"❌ Ошибка: {e}")
