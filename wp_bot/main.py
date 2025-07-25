@@ -21,6 +21,8 @@ async def main():
     dp.include_router(connect.router)
     dp.include_router(post.router)
     dp.include_router(logs.router)
+    dp.include_router(admin.router)  # ✅ подключение админских команд
+
 
     init_db()
     await dp.start_polling(bot)
