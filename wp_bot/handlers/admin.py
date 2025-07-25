@@ -12,21 +12,19 @@ async def restart_service(message: types.Message):
     if message.from_user.id not in ADMIN_IDS:
         return
 
-    notice = await message.answer("♻️ Рестартую systemd сервис...")
+    await message.answer("♻️ Перезапускай systemd сервис...")
 
+    # Выполнить перезапуск с задержкой
+    asyncio.create_task(_restart_and_report(message))
+
+
+async def _restart_and_report(message: types.Message):
+    await asyncio.sleep(1)
+
+    cmd = f"sleep 1 && systemctl restart {SERVICE_NAME}"
     try:
-        # ⏳ ждём и рестартим
-        await asyncio.sleep(1)
-        subprocess.run(["systemctl", "restart", SERVICE_NAME], check=True)
-        result_msg = "✅ Сервис успешно перезапущен."
+        subprocess.Popen(["bash", "-c", cmd])
+        await message.answer("✅ Сервер успешно перезапущен.")
     except Exception as e:
-        logging.exception("Ошибка при рестарте systemd")
-        result_msg = f"❌ Ошибка при перезапуске:\n<code>{e}</code>"
-
-    # Удаляем "рестартую..." и отправляем результат
-    try:
-        await message.bot.delete_message(chat_id=message.chat.id, message_id=notice.message_id)
-    except:
-        pass  # вдруг оно уже удалено или недоступно
-
-    await message.answer(result_msg, parse_mode="HTML")
+        logging.exception("Ошибка при перезапуске systemd")
+        await message.answer(f"❌ Ошибка:\n<code>{e}</code>", parse_mode="HTML")
