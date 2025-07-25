@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.enums import ParseMode
 from config import BOT_TOKEN
 from db import init_db
-from handlers import connect, post, logs, common
+from handlers import connect, post, logs, common, admin
 
 async def main():
     logging.basicConfig(level=logging.INFO)
